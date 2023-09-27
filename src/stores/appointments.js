@@ -3,6 +3,7 @@ import { defineStore } from "pinia";
 
 export const useAppointmentsStore = defineStore("appointments", () => {
   const services = ref([]);
+  const date = ref("");
 
   function onServiceSelected(service) {
     if (
@@ -34,6 +35,7 @@ export const useAppointmentsStore = defineStore("appointments", () => {
 
   return {
     services,
+    date,
     onServiceSelected,
     isServiceSelected,
     noServicesSelected,
