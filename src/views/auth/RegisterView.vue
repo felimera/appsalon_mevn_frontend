@@ -1,10 +1,22 @@
-<script setup></script>
+<script setup>
+import AuthAPI from '../../api/AuthAPI';
+
+const handleSubmit = async ({ password_confirm, ...data }) => {
+    try {
+        await AuthAPI.register(data)
+    } catch (error) {
+        console.log(error)
+    }
+}
+
+</script>
 
 <template>
     <h1 class="text-6xl font-extrabold text-white text-center mt-10">Crea una Cuenta</h1>
     <p class="text-2xl text-white text-center my-5">Crea un cuenta en AppSalón</p>
 
-    <FormKit type="form" :actions="false" incomplete-message="No se pudo enviar revisa las notificaciones">
+    <FormKit type="form" :actions="false" incomplete-message="No se pudo enviar revisa las notificaciones"
+        @submit="handleSubmit">
         <FormKit type="text" label="Nombre" name="name" placeholder="Tu Nombre" validation="required|length:3"
             :validation-messages="{
                 required: 'El Nombre es obligatorio',
