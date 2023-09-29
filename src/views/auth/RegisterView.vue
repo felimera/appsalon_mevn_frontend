@@ -1,5 +1,6 @@
 <script setup>
 import { inject } from 'vue';
+import { reset } from '@formkit/vue';
 import AuthAPI from '../../api/AuthAPI';
 
 const toast = inject('toast')
@@ -11,6 +12,7 @@ const handleSubmit = async ({ password_confirm, ...formData }) => {
             message: data.msg,
             type: 'success'
         });
+        reset('registerForm')
     } catch (error) {
         console.log(error)
     }
@@ -22,7 +24,7 @@ const handleSubmit = async ({ password_confirm, ...formData }) => {
     <h1 class="text-6xl font-extrabold text-white text-center mt-10">Crea una Cuenta</h1>
     <p class="text-2xl text-white text-center my-5">Crea un cuenta en AppSalón</p>
 
-    <FormKit type="form" :actions="false" incomplete-message="No se pudo enviar revisa las notificaciones"
+    <FormKit id="registerForm" type="form" :actions="false" incomplete-message="No se pudo enviar revisa las notificaciones"
         @submit="handleSubmit">
         <FormKit type="text" label="Nombre" name="name" placeholder="Tu Nombre" validation="required|length:3"
             :validation-messages="{
