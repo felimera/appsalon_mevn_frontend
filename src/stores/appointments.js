@@ -7,8 +7,8 @@ import { convertTOISO } from "../helpers/date";
 export const useAppointmentsStore = defineStore("appointments", () => {
   const services = ref([]);
   const date = ref("");
-  const hours = ref([]);
   const time = ref("");
+  const hours = ref([]);
   const appointmentsByDate = ref([]);
 
   const toast = inject('toast');
@@ -29,6 +29,14 @@ export const useAppointmentsStore = defineStore("appointments", () => {
     const { data } = await AppointmentAPI.getByDate(date.value);
     appointmentsByDate.value = data;
   });
+
+  function setSelectedAppointment(appointment) {
+    console.log(appointment);
+    services.value = appointment.services;
+
+    const date = ref("");
+    const time = ref("");
+  }
 
   function onServiceSelected(service) {
     if (
@@ -99,6 +107,7 @@ export const useAppointmentsStore = defineStore("appointments", () => {
     date,
     hours,
     time,
+    setSelectedAppointment,
     onServiceSelected,
     createAppointment,
     isServiceSelected,
