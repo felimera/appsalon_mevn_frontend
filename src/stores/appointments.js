@@ -5,6 +5,7 @@ import AppointmentAPI from "../api/AppointmentAPI";
 import { convertTOISO, convertToDDMMYYYY } from "../helpers/date";
 
 export const useAppointmentsStore = defineStore("appointments", () => {
+  const appointmentId = ref('');
   const services = ref([]);
   const date = ref("");
   const time = ref("");
@@ -27,14 +28,21 @@ export const useAppointmentsStore = defineStore("appointments", () => {
     if (date.value === '') return
     // Obtenemos las citas
     const { data } = await AppointmentAPI.getByDate(date.value);
-    appointmentsByDate.value = data;
+
+    if (appointmentId.value) {
+      appointmentsByDate.value = data.filter(appointment => appointment._id !== appointmentId.value);
+      time.value = data.filter(appointment => appointment._id === appointmentId.value)[0].time;
+      console.log(currentAppointment)
+    } else {
+      appointmentsByDate.value = data;
+    }
   });
 
   function setSelectedAppointment(appointment) {
-    console.log(appointment);
     services.value = appointment.services;
     date.value = convertToDDMMYYYY(appointment.date);
     time.value = appointment.time;
+    appointmentId.value = appointment._id;
   }
 
   function onServiceSelected(service) {
