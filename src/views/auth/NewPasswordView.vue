@@ -19,7 +19,7 @@ onMounted(async () => {
     }
 });
 
-const handleSubmit = () => { }
+const handleSubmit = async ({ password }) => { }
 </script>
 
 <template>
