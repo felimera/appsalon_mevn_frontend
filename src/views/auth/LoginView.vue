@@ -26,12 +26,12 @@ const handleSubmit = async (formData) => {
 
         <FormKit type="email" label="Email" name="email" placeholder="Email de Usuario" validation="required|email"
             :validation-messages="{
-                required: 'El Nombre es obligatorio',
+                required: 'El Email es obligatorio',
                 email: 'Email no válido'
             }" />
 
         <FormKit type="password" label="Password" name="password" placeholder="Password de Usuario" validation="required"
-            :validation-messages="{ required: 'El Nombre es obligatorio' }" />
+            :validation-messages="{ required: 'El Password es obligatorio' }" />
 
         <FormKit type="submit">Iniciar Sesión</FormKit>
 
