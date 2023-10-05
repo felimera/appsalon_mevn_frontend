@@ -1,11 +1,22 @@
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, inject, watch } from "vue";
 import { defineStore } from "pinia";
+import { useRouter } from 'vue-router';
+import AppointmentAPI from "../api/AppointmentAPI";
+import { convertTOISO, convertToDDMMYYYY } from "../helpers/date";
+import { useUserStore } from '../stores/user';
 
 export const useAppointmentsStore = defineStore("appointments", () => {
+  const appointmentId = ref('');
   const services = ref([]);
   const date = ref("");
-  const hours = ref([]);
   const time = ref("");
+  const hours = ref([]);
+  const appointmentsByDate = ref([]);
+
+  const toast = inject('toast');
+  const router = useRouter();
+
+  const user = useUserStore();
 
   onMounted(() => {
     const startHour = 10;
@@ -14,6 +25,27 @@ export const useAppointmentsStore = defineStore("appointments", () => {
       hours.value.push(hour + ":00");
     }
   });
+
+  watch(date, async () => {
+    time.value = ''
+    if (date.value === '') return
+    // Obtenemos las citas
+    const { data } = await AppointmentAPI.getByDate(date.value);
+
+    if (appointmentId.value) {
+      appointmentsByDate.value = data.filter(appointment => appointment._id !== appointmentId.value);
+      time.value = data.filter(appointment => appointment._id === appointmentId.value)[0].time;
+    } else {
+      appointmentsByDate.value = data;
+    }
+  });
+
+  function setSelectedAppointment(appointment) {
+    services.value = appointment.services;
+    date.value = convertToDDMMYYYY(appointment.date);
+    time.value = appointment.time;
+    appointmentId.value = appointment._id;
+  }
 
   function onServiceSelected(service) {
     if (
@@ -33,15 +65,53 @@ export const useAppointmentsStore = defineStore("appointments", () => {
     }
   }
 
-  function createAppointment() {
+  async function saveAppointment() {
     const appointment = {
       services: services.value.map((service) => service._id),
-      date: date.value,
+      date: convertTOISO(date.value),
       time: time.value,
       totalAmount: totalAmount.value,
     };
+    if (appointmentId.value) {
+      try {
+        const { data } = await AppointmentAPI.update(appointmentId.value, appointment)
+        toast.open({ message: data.msg, type: 'success' });
+      } catch (error) {
+        toast.open({ message: error.response.data.msg, type: 'error' })
+      }
+    }
+    else {
+      try {
+        const { data } = await AppointmentAPI.create(appointment)
+        toast.open({ message: data.msg, type: 'success' });
+      } catch (error) {
+        toast.open({ message: error.response.data.msg, type: 'error' })
+      }
+    }
 
-    console.table(appointment);
+    clearAppopintmentData();
+    user.getUserAppointments();
+    router.push({ name: 'my-appointments' });
+  }
+
+  function clearAppopintmentData() {
+    appointmentId.value = '';
+    services.value = [];
+    date.value = "";
+    time.value = "";
+  }
+
+  async function cancelAppointment(id) {
+    if (confirm('¿Deseas cancelar esta cita?')) {
+      try {
+        const { data } = await AppointmentAPI.delete(id);
+        toast.open({ message: data.msg, type: 'success' });
+
+        user.userAppointments = user.userAppointments.filter(appointment => appointment._id !== id);
+      } catch (error) {
+        toast.open({ message: error.response.data.msg, type: 'error' });
+      }
+    }
   }
 
   const isServiceSelected = computed(() => {
@@ -58,16 +128,29 @@ export const useAppointmentsStore = defineStore("appointments", () => {
     () => services.value.length && date.value.length && time.value.length
   );
 
+  const isDateSelected = computed(() => date.value ? true : false);
+
+  const disableTime = computed(() => {
+    return (hour) => {
+      return appointmentsByDate.value.find(appointment => appointment.time === hour)
+    }
+  });
+
   return {
     services,
     date,
     hours,
     time,
+    setSelectedAppointment,
     onServiceSelected,
-    createAppointment,
+    saveAppointment,
+    clearAppopintmentData,
+    cancelAppointment,
     isServiceSelected,
     noServicesSelected,
     totalAmount,
     isValidReservation,
+    isDateSelected,
+    disableTime
   };
 });
